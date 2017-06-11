@@ -12,7 +12,7 @@ Once that's taken care of, `mvn package` should be all that's required.
 
 Running
 ==
-After you've built the JAR it runs just like every other JAR, but you'll need to provide it with the full path and filename of a configuration file.  The `gristmill.con` file in the root project folder is a good place to start, just edit as you see fit.
+After you've built the JAR it runs just like every other JAR, but you'll need to provide it with the full path and filename of a configuration file.  The `gristmill.conf` file in the root project folder is a good place to start, just edit as you see fit.
 
 Next, send it some data!  You can use any Myriad-based application to send it data.  If you don't configure a [ReporterPool](http://myrdocs.azurewebsites.net/api/com/emphysic/myriad/network/ReporterActorPool.html), GristMill will default to logging the ROI it finds.
 
