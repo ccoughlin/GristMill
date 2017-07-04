@@ -47,7 +47,7 @@ public class Main {
             log.info("Successfully initiated grist mill.");
         } else {
             log.error("Unable to construct grist mill, please check logs for details.");
-            System.exit(1);
+            mill.shutdown(1);
         }
     }
 }

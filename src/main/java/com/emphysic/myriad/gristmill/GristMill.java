@@ -23,7 +23,9 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import com.emphysic.myriad.core.data.ops.GaussianPyramidOperation;
 import com.emphysic.myriad.core.data.roi.ROIBundle;
-import com.emphysic.myriad.network.*;
+import com.emphysic.myriad.network.PyramidActorPool;
+import com.emphysic.myriad.network.ROIFinderPool;
+import com.emphysic.myriad.network.SlidingWindowPool;
 import com.typesafe.config.Config;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,10 +50,6 @@ public class GristMill {
      * Region Of Interest (ROI) finder pool
      */
     private ActorRef finderPool;
-    /**
-     * ROI reporter pool
-     */
-    private ActorRef reporterPool;
     /**
      * The ROI finder and its preprocessing operation(s)
      */
@@ -118,21 +116,31 @@ public class GristMill {
                     config.getInt("roi.number"),
                     roiBundle),
                     "ROIFinderPool");
-            if (reporterPool == null) {
-                log.info("No reporter pool specified, logging locally");
-                reporterPool = system.actorOf(Props.create(
-                        ReporterActorPool.class,
-                        4),
-                        "ReporterPool");
-            }
             pyramidActorPool.tell(slidingWindowPool, system.guardian());
             slidingWindowPool.tell(finderPool, pyramidActorPool);
-            finderPool.tell(reporterPool, slidingWindowPool);
             return true;
         } catch (Exception e) {
             log.error("An error occurred constructing the pipeline: ", e);
         }
         return false;
+    }
+
+    /**
+     * Shuts the Akka system down.
+     */
+    public void shutdown() {
+        if (system != null) {
+            system.shutdown();
+        }
+    }
+
+    /**
+     * Shuts the Akka system down and exits the application.
+     * @param errorcode error code to return on System.exit call
+     */
+    public void shutdown(int errorcode) {
+        shutdown();
+        System.exit(errorcode);
     }
 
     /**
@@ -143,22 +151,6 @@ public class GristMill {
                 config.getInt("pyramid.scalefactor"),
                 config.getInt("pyramid.windowsize")
         );
-    }
-
-    /**
-     * Returns a reference to the ROIReporter pool
-     * @return reference to reporting pool
-     */
-    public ActorRef getReporterPool() {
-        return reporterPool;
-    }
-
-    /**
-     * Sets the ROIReporter pool - found ROI are sent to this Actor
-     * @param reporterPool reference to reporter pool
-     */
-    public void setReporterPool(ActorRef reporterPool) {
-        this.reporterPool = reporterPool;
     }
 
     /**
